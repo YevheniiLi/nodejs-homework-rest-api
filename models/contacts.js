@@ -1,77 +1,63 @@
-const fs = require('fs/promises');
-const path = require('path');
-const {nanoid} = require('nanoid');
+const {
+  getContacts,
+  getContactById,
+  addContact,
+  updateContact,
+  removeContactById,
+  updateStatusContact,
+} = require("../services/contactsService");
 
-const contactsPath = path.join(__dirname, "contacts.json");
-
-const listContacts = async () => {
-  try {
-    const response = await fs.readFile(contactsPath, "utf-8");
-    const contacts = JSON.parse(response);
-    return contacts;
-  } catch (error) {
-    console.log(error.message);
-  }
+const getContactsController = async (req, res) => {
+  const contacts = await getContacts();
+  res.json({ contacts });
 };
 
-const getContactById = async (contactId) => {
-  try {
-    const contacts = await listContacts();
-    const foundContact = contacts.find(contact => contact.id === contactId);
-    return foundContact;
-  } catch (error) {
-    console.log(error.message);
-  }
+const getContactByIdController = async (req, res) => {
+  const { id } = req.params;
+  console.log(id);
+  const contact = await getContactById(id);
+
+  res.json({ contact, status: "succes" });
 };
 
-const removeContact = async (contactId) => {
-  try {
-    const contacts = await listContacts();
-  const contactForDelete = contacts.find(contact => contact.id === contactId);
-  if (!contactForDelete) {
-    return null;
-  };
-  const removedContact = contacts.filter(contact => contact.id !== contactId);
-  await fs.writeFile(contactsPath, JSON.stringify(removedContact));
-  return contactForDelete;
-  } catch (error) {
-    console.log(error.message);
-  }
+const addContactController = async (req, res) => {
+  const { name, email, phone } = req.body;
+  await addContact({ name, email, phone });
+
+  res.json({ status: "success" });
 };
 
-const addContact = async (body) => {
-try {
-  const { name, email, phone } = body;
-  const newContact = { id: nanoid(), name, email, phone };
-  const contacts = await listContacts();
-  contacts.push(newContact);
-  await fs.writeFile(contactsPath, JSON.stringify(contacts));
-  return newContact;
-} catch (error) {
-  console.log(error.message);
-}
+const updateContactController = async (req, res) => {
+  const { id } = req.params;
+  const { name, email, phone } = req.body;
+  await updateContact(id, { $set: { name, email, phone } });
+
+  res.json({ status: "success" });
 };
 
-const updateContact = async (contactId, body) => {
-  try {
-    const { name, email, phone} = body;
-    const contacts = await listContacts();
-    const [contact] = contacts.filter((item) => item.id === contactId);
-    contact.name = name;
-    contact.email = email;
-    contact.phone = phone;
-    const newContacts = [...contacts];
-    await fs.writeFile(contactsPath, JSON.stringify(newContacts));
-    return contact;
-  } catch (error) {
-    console.log(error.message);
+const removeContactController = async (req, res) => {
+  const { id } = req.params;
+  await removeContactById(id);
+
+  res.json({ status: "success" });
+};
+
+const updateStatusContactController = async (req, res) => {
+  const { id } = req.params;
+  if (!req.body) {
+    return res.status(400).json({ message: "missing field favorite" });
   }
+  const { favorite } = req.body;
+  await updateStatusContact(id, { favorite });
+
+  res.json({ status: "success" });
 };
 
 module.exports = {
-  listContacts,
-  getContactById,
-  removeContact,
-  addContact,
-  updateContact,
-}
+  getContactsController,
+  getContactByIdController,
+  addContactController,
+  updateContactController,
+  removeContactController,
+  updateStatusContactController,
+};
