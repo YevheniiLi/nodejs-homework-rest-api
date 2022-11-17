@@ -14,10 +14,9 @@ const getContactsController = async (req, res) => {
 
 const getContactByIdController = async (req, res) => {
   const { id } = req.params;
-  console.log(id);
   const contact = await getContactById(id);
 
-  res.json({ contact, status: "succes" });
+  res.json({ contact, status: "success" });
 };
 
 const addContactController = async (req, res) => {
@@ -44,9 +43,6 @@ const removeContactController = async (req, res) => {
 
 const updateStatusContactController = async (req, res) => {
   const { id } = req.params;
-  if (!req.body) {
-    return res.status(400).json({ message: "missing field favorite" });
-  }
   const { favorite } = req.body;
   await updateStatusContact(id, { favorite });
 
