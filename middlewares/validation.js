@@ -3,7 +3,6 @@ const validation = (schema) => {
     const validateBody = schema.validate(req.body);
     if (validateBody.error) {
       console.log(validateBody.error);
-      res.status(400).json({ message: "missing field favorite" });
       next(validateBody.error);
     }
     next();
