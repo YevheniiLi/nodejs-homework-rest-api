@@ -1,34 +1,62 @@
 const { Contact } = require("../db/contactModel");
-const { WrongParametersError } = require('../Helpers/errors')
 
 const getContacts = async () => {
-  const contacts = await Contact.find({});
-  return contacts;
+  try {
+    const contacts = await Contact.find({});
+    return contacts;
+  } catch (error) {
+    console.log(error.message);
+  }
 };
 
 const getContactById = async (id) => {
-  const contact = await Contact.findById(id);
-  if (!contact) {
-      throw new WrongParametersError(`failure, no contact with id '${id}' found!`);
+  try {
+    const contact = await Contact.findById(id);
+    return contact;
+  } catch (error) {
+    console.log(error.message);
   }
-  return contact;
 };
 
-const addContact = async ({ name, email, phone }) => {
-  const contact = new Contact({ name, email, phone });
-  await contact.save();
+const addContact = async (body) => {
+  try {
+    const contact = await Contact.create(body);
+    return contact;
+  } catch (error) {
+    console.log(error);
+  }
 };
 
-const updateContact = async (id, { $set: { name, email, phone } }) => {
-  await Contact.findByIdAndUpdate(id, { $set: { name, email, phone } });
+const updateContact = async (id, body) => {
+  try {
+    await Contact.findByIdAndUpdate(id, body, {
+      new: true,
+    });
+    const contact = await Contact.findById(id);
+    return contact;
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 const removeContactById = async (id) => {
-  await Contact.findByIdAndRemove(id);
+  try {
+    const contact = await Contact.findByIdAndRemove(id);
+    return contact;
+  } catch (error) {
+    console.log(error.message);
+  }
 };
 
-const updateStatusContact = async (id, { favorite }) => {
-  await Contact.findByIdAndUpdate(id, { favorite });
+const updateStatusContact = async (id, body) => {
+  try {
+    const contact = await Contact.findByIdAndUpdate(id, body, {
+      new: true,
+    });
+    return contact;
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 module.exports = {

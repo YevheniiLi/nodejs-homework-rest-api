@@ -9,44 +9,55 @@ const {
 
 const getContactsController = async (req, res) => {
   const contacts = await getContacts();
-  res.json({ contacts });
+  res.status(200).json({message: contacts})
 };
 
 const getContactByIdController = async (req, res) => {
   const { id } = req.params;
   const contact = await getContactById(id);
-
-  res.json({ contact, status: "success" });
+  if (contact) {
+    res.status(200).json({ message: contact });
+  } else {
+    res.status(404).json({ message: "Not found" });
+  }
 };
 
 const addContactController = async (req, res) => {
-  const { name, email, phone } = req.body;
-  await addContact({ name, email, phone });
-
-  res.json({ status: "success" });
+  const contact = await addContact(req.body);
+  res.status(201).json({message: contact})
 };
 
 const updateContactController = async (req, res) => {
   const { id } = req.params;
-  const { name, email, phone } = req.body;
-  await updateContact(id, { $set: { name, email, phone } });
-
-  res.json({ status: "success" });
+  const contact = await updateContact (id, req.body);
+  if (contact) {
+    res.status(201).json({ message: contact });
+  } else {
+    res.status(404).json({ message: "Not found" });
+  }
 };
 
 const removeContactController = async (req, res) => {
   const { id } = req.params;
-  await removeContactById(id);
-
-  res.json({ status: "success" });
+  const contact = await removeContactById(id);
+  if (contact) {
+    res.status(200).json({ message: "contact deleted" });
+  } else {
+    res.status(404).json({ message: "Not found" });
+  }
 };
 
 const updateStatusContactController = async (req, res) => {
   const { id } = req.params;
-  const { favorite } = req.body;
-  await updateStatusContact(id, { favorite });
-
-  res.json({ status: "success" });
+  if (!id) {
+    res.status(400).json({message: "missing field favorite" })
+  }
+  const contact = await updateStatusContact(id, req.body );
+  if (contact) {
+    res.status(200).json({ message: contact });
+  } else {
+    res.status(404).json({ message: "Not found" });
+  }
 };
 
 module.exports = {
