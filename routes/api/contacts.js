@@ -12,7 +12,6 @@ const { asyncWrapper } = require("../../Helpers/apiHelpers");
 const {
   addContactValidation,
   updateContactValidation,
-  updateContactStatus,
 } = require("../../middlewares/validationSchemes");
 
 const { validation } = require('../../middlewares/validation')
@@ -23,7 +22,7 @@ router.get("/", asyncWrapper(getContactsController));
 router.get("/:id", asyncWrapper(getContactByIdController));
 router.post("/", validation(addContactValidation), asyncWrapper(addContactController));
 router.delete("/:id", asyncWrapper(removeContactController));
-router.patch("/:id/favorite",validation(updateContactStatus), asyncWrapper(updateStatusContactController));
+router.patch("/:id/favorite",asyncWrapper(updateStatusContactController));
 router.put(
   "/:id",
   validation(updateContactValidation),

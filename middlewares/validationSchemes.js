@@ -17,13 +17,8 @@ const Joi = require("joi");
         .required(),
     });
 
-  const updateContactStatus = Joi.object({
-    favorite: Joi.boolean(),
-  });
-
 
     module.exports ={
         addContactValidation,
         updateContactValidation,
-        updateContactStatus,
     }
