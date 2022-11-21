@@ -1,18 +1,16 @@
-const { connectMongo } = require("./db/connection");
-require("dotenv").config();
-const app = require("./app");
-const PORT = process.env.PORT || 8000;
+const mongoose = require("mongoose");
 
-const start = async () => {
-  try {
-    await connectMongo();
-    app.listen(PORT, () => {
-      console.log("Database connection successful");
-      console.log(`"Server running. Use our API on port: ${PORT}`);
-    });
-  } catch (error) {
-     console.error(error.message);
-     process.exit(1);
-  }
-};
-start();
+const app = require("./app");
+
+const { DB_HOST, PORT = 3000 } = process.env;
+
+mongoose
+  .connect(DB_HOST)
+  .then(() => {
+    console.log("Database connection successful");
+    app.listen(PORT); 
+  })
+  .catch((error) => {
+    console.log(error.message);
+    process.exit(1);
+  });

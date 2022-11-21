@@ -16,7 +16,8 @@
     "joi": "^17.6.0",
     "mongodb": "^4.8.1",
     "mongoose": "^6.5.0",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "eslint": "7.19.0",

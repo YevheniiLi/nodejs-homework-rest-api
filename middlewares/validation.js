@@ -1,12 +1,15 @@
+const { createError } = require("../helpers/createError");
+
 const validation = (schema) => {
-  return function (req, res, next) {
-    const validateBody = schema.validate(req.body);
-    if (validateBody.error) {
-      console.log(validateBody.error);
-      next(validateBody.error);
+  return (req, res, next) => {
+    const { error } = schema.validate(req.body);
+    if (error) {
+      next(createError(400, error.message));
     }
     next();
   };
 };
 
-module.exports = { validation };
+module.exports = {
+    validation,
+};

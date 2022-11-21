@@ -1,70 +1,50 @@
-const {
-  getContacts,
-  getContactById,
-  addContact,
-  updateContact,
-  removeContactById,
-  updateStatusContact,
-} = require("../services/contactsService");
+const { Schema, model } = require("mongoose");
+const Joi = require("joi");
 
-const getContactsController = async (req, res) => {
-  const contacts = await getContacts();
-  res.status(200).json({message: contacts})
-};
+const contactSchema = Schema(
+    {
+        name: {
+            type: String,
+            required: [true, 'Set name for contact'],
+        },
+        email: {
+            type: String,
+        },
+        phone: {
+            type: String,
+        },
+        favorite: {
+            type: Boolean,
+            default: false,
+        },
+    }
+);
 
-const getContactByIdController = async (req, res) => {
-  const { id } = req.params;
-  const contact = await getContactById(id);
-  if (contact) {
-    res.status(200).json({ message: contact });
-  } else {
-    res.status(404).json({ message: "Not found" });
-  }
-};
+const addSchema = Joi.object({
+  name: Joi.string().min(3).max(20).required(),
+  email: Joi.string().email().required(),
+  phone: Joi.string()
+    .pattern(/^[0-9]+$/)
+    .required(),
+  favorite: Joi.bool(),
+});
 
-const addContactController = async (req, res) => {
-  const contact = await addContact(req.body);
-  res.status(201).json({message: contact})
-};
+const schemaUpdate = Joi.object({
+  name: Joi.string().min(3).max(20),
+  email: Joi.string().email(),
+  phone: Joi.string().pattern(/^[0-9]+$/),
+  favorite: Joi.bool(),
+}).min(1);
 
-const updateContactController = async (req, res) => {
-  const { id } = req.params;
-  const contact = await updateContact (id, req.body);
-  if (contact) {
-    res.status(201).json({ message: contact });
-  } else {
-    res.status(404).json({ message: "Not found" });
-  }
-};
+const schemaUpdateFavorite = Joi.object({
+  favorite: Joi.bool().required(),
+});
 
-const removeContactController = async (req, res) => {
-  const { id } = req.params;
-  const contact = await removeContactById(id);
-  if (contact) {
-    res.status(200).json({ message: "contact deleted" });
-  } else {
-    res.status(404).json({ message: "Not found" });
-  }
-};
-
-const updateStatusContactController = async (req, res) => {
-  const { id } = req.params;
-  if (!id) {
-    res.status(400).json({message: "missing field favorite" })
-  }
-  const contact = await updateStatusContact(id, req.body );
-  if (contact) {
-    res.status(200).json({ message: contact });
-  } else {
-    res.status(404).json({ message: "Not found" });
-  }
-};
+const Contact = model("contact", contactSchema);
 
 module.exports = {
-  getContactsController,
-  getContactByIdController,
-  addContactController,
-  updateContactController,
-  removeContactController,
-  updateStatusContactController,
+    Contact,
+    addSchema,
+    schemaUpdate,
+    schemaUpdateFavorite
 };
