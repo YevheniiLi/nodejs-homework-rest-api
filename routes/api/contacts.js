@@ -1,28 +1,16 @@
-const express = require('express');
-const {
-  postAddContact,
-  putChangeContact,
-  getContacts,
-  getContactId,
-  deleteContact,
-} =require('../../controllers/contactControllers');
-
-const {
-  addContactSchema,
-  changeContactSchema
-} = require('../middleware/validationSchemes');
-const { validation } = require('../middleware/validationBody')
-
+const express = require("express");
 const router = express.Router();
+const { asyncWrapper } = require("../../helpers/asyncWrapper");
+const contactsOperations = require("../../controllers/controller");
+const { validation } = require("../../middlewares/validation");
+const { addSchema, schemaUpdate, schemaUpdateFavorite } = require("../../models/contacts");
 
-router.get('/', getContacts);
+router.get('/', asyncWrapper(contactsOperations.getContacts));
+router.get("/:contactId", asyncWrapper(contactsOperations.getContactById));
+router.post('/', validation(addSchema), asyncWrapper(contactsOperations.addContact));
+router.delete('/:contactId', asyncWrapper(contactsOperations.removeContactById));
+router.put('/:contactId', validation(schemaUpdate), asyncWrapper(contactsOperations.updateContact));
+router.patch('/:contactId/favorite', validation(schemaUpdateFavorite), asyncWrapper(contactsOperations.updateStatusContact));
 
-router.get('/:contactId', getContactId);
-
-router.post('/', validation(addContactSchema), postAddContact);
-
-router.delete('/:contactId', deleteContact);
-
-router.put('/:contactId', validation(changeContactSchema), putChangeContact);
 
 module.exports = router;
