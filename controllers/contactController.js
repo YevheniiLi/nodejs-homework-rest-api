@@ -1,12 +1,12 @@
 const { Contact } = require("../models/contacts");
 const { createError } = require("../helpers/createError");
 
-async function getContacts(req, res, next) {
+const getContacts = async (req, res, next) => {
     const contacts = await Contact.find();
     return res.json({ data: contacts });
 };
 
-async function getContactById(req, res, next) { 
+const getContactById = async (req, res, next) => { 
     const { contactId } = req.params;
     const result = await Contact.findById(contactId);
     if (!result) {
@@ -15,12 +15,12 @@ async function getContactById(req, res, next) {
     res.json(result);
 };
 
-async function addContact(req, res, next) {
+const addContact = async (req, res, next) => {
     const newContact = await Contact.create({...req.body});
     return res.status(201).json({ data: { contact: newContact } });
 };
 
-async function removeContactById(req, res, next) {
+const removeContactById = async (req, res, next) => {
     const { contactId } = req.params;
     const result = await Contact.findByIdAndRemove(contactId);
     if (!result) {
@@ -31,7 +31,7 @@ async function removeContactById(req, res, next) {
     });
 };
 
-async function updateContact(req, res, next) {
+const updateContact = async (req, res, next) => {
     const { contactId } = req.params;
     const result = await Contact.findByIdAndUpdate(contactId, req.body, { new: true });
     if (!result) {
@@ -40,7 +40,7 @@ async function updateContact(req, res, next) {
     res.status(200).json(result);
 };
  
-async function updateStatusContact(req, res, next) {
+const updateStatusContact = async(req, res, next) => {
     const { contactId } = req.params;
     const result = await Contact.findByIdAndUpdate(contactId, req.body, { new: true });
     if (!result) {
