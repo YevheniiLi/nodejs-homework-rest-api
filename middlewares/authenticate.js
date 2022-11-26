@@ -5,8 +5,8 @@ const { JWT_KEY } = process.env;
 
 const authenticate = async(req, res, next) => {
     try {
-        const { authenticate = "" } = req.headers;
-        const [bearer = "", token = ""] = authenticate.split(" ");
+        const { authorization = "" } = req.headers;
+        const [bearer = "", token = ""] = authorization.split(" ");
         if (bearer !== "Bearer" || !token) {
             throw createError(401);
         }
