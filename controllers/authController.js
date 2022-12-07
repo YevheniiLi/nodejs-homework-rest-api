@@ -7,6 +7,8 @@ const gravatar = require("gravatar");
 const jimp = require("jimp");
 const path = require("path");
 const fs = require("fs/promises");
+const sendEmail = require("../helpers/sendEmail");
+const { nanoid } = require("nanoid");
 
 const signup = async (req, res, next) => {
   const { email, password, subscription } = req.body;
@@ -16,13 +18,26 @@ const signup = async (req, res, next) => {
     throw createError(409, "Email in use");
   }
 
+  const verificationToken = nanoid();
   const hashPass = await bcrypt.hash(password, 10);
   const registerUser = await User.create({
     email,
     password: hashPass,
     subscription,
     avatarURL,
+    verificationToken
   });
+
+  const data = {
+    to: email,
+    subject: "Confirmation of registration",
+    html: `<p>Please, confirm your email <a href="http://localhost:3000/api/users/verify/${verificationToken}" target="_blank">${email}</a></p>`,
+  };
+
+  const myEmail = "jekilllimarenko@gmail.com";
+  await sendEmail(data, myEmail);
+
+
 
   return res.status(201).json({
     user: {
@@ -105,6 +120,53 @@ const avatar = async (req, res, next) => {
   });
 };
 
+const verificationEmail = async (res, req) => {
+  const { verificationToken } = req.params;
+  const user = await User.findOne({ verificationToken });
+
+  if (!user) {
+    throw createError(404, "User not found");
+  }
+
+  await User.findByIdAndUpdate(user._id, {
+    verificationToken: null,
+    verify: true,
+  });
+  res.json({
+    status: "success",
+    code: 200,
+    message: "Email verified successffully",
+  });
+};
+
+const repeatVerificationEmail = async (res, req) => {
+  const { email } = req.body;
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    throw createError(404, `User with email ${email} does not exist`);
+  }
+  if (user.verify && !user.verificationToken) {
+    throw createError(400, "Verification has already been passed");
+  }
+
+  const data = {
+    to: email,
+    subject: "Confirmation of registration",
+    html: `<p>Please, confirm your email <a href="http://localhost:3000/api/users/verify/${user.verificationToken}" target="_blank">${email}</a></p>`,
+  };
+
+  const myEmail = "jekilllimarenko@gmail.com";
+
+  await sendEmail(data, myEmail);
+  res.json({
+    status: "success",
+    code: 200,
+    message: "Verification email sent",
+  });
+};
+
 module.exports = {
   signup,
   login,
@@ -112,4 +174,6 @@ module.exports = {
   getCurrent,
   avatar,
   updateSubscription,
+  verificationEmail,
+  repeatVerificationEmail,
 };
