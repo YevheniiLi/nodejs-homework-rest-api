@@ -37,8 +37,6 @@ const signup = async (req, res, next) => {
   const myEmail = "jekilllimarenko@gmail.com";
   await sendEmail(data, myEmail);
 
-
-
   return res.status(201).json({
     user: {
       email: registerUser.email,
@@ -50,8 +48,8 @@ const signup = async (req, res, next) => {
 const login = async (req, res, next) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
-  if (!user) {
-    throw createError(401, "Email or password is wrong");
+  if (!user || !user.verify || !user.passwordCompare(password)) {
+    throw createError(401, "Email is wrong or not verify, or password is wrong");
   }
 
   const passwordCompare = await bcrypt.compare(password, user.password);
@@ -141,6 +139,9 @@ const verificationEmail = async (res, req) => {
 
 const repeatVerificationEmail = async (res, req) => {
   const { email } = req.body;
+  if (!email) {
+    throw createError(400, 'Missing required field email')
+  };
 
   const user = await User.findOne({ email });
 
