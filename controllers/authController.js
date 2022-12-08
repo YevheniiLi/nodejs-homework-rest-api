@@ -9,6 +9,7 @@ const path = require("path");
 const fs = require("fs/promises");
 const sendEmail = require("../helpers/sendEmail");
 const { nanoid } = require("nanoid");
+const emailWrapper = require("../helpers/emailWrapper");
 
 const signup = async (req, res, next) => {
   const { email, password, subscription } = req.body;
@@ -27,20 +28,16 @@ const signup = async (req, res, next) => {
     avatarURL,
     verificationToken
   });
+  
+  const mail = emailWrapper(email, verificationToken)
+  await sendEmail(mail);
 
-  const data = {
-    to: email,
-    subject: "Confirmation of registration",
-    html: `<p>Please, confirm your email <a href="http://localhost:3000/api/users/verify/${verificationToken}" target="_blank">${email}</a></p>`,
-  };
-
-  const myEmail = "jekilllimarenko@gmail.com";
-  await sendEmail(data, myEmail);
 
   return res.status(201).json({
     user: {
       email: registerUser.email,
       subscription: registerUser.subscription,
+      verificationToken: registerUser.verificationToken
     },
   });
 };
@@ -151,16 +148,9 @@ const repeatVerificationEmail = async (res, req) => {
   if (user.verify && !user.verificationToken) {
     throw createError(400, "Verification has already been passed");
   }
+  const mail = emailWrapper(email, user.verificationToken)
+  await sendEmail(mail);
 
-  const data = {
-    to: email,
-    subject: "Confirmation of registration",
-    html: `<p>Please, confirm your email <a href="http://localhost:3000/api/users/verify/${user.verificationToken}" target="_blank">${email}</a></p>`,
-  };
-
-  const myEmail = "jekilllimarenko@gmail.com";
-
-  await sendEmail(data, myEmail);
   res.json({
     status: "success",
     code: 200,
