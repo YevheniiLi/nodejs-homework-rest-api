@@ -7,6 +7,9 @@ const gravatar = require("gravatar");
 const jimp = require("jimp");
 const path = require("path");
 const fs = require("fs/promises");
+const sendEmail = require("../helpers/sendEmail");
+const { nanoid } = require("nanoid");
+const emailWrapper = require("../helpers/emailWrapper");
 
 const signup = async (req, res, next) => {
   const { email, password, subscription } = req.body;
@@ -16,18 +19,25 @@ const signup = async (req, res, next) => {
     throw createError(409, "Email in use");
   }
 
+  const verificationToken = nanoid();
   const hashPass = await bcrypt.hash(password, 10);
   const registerUser = await User.create({
     email,
     password: hashPass,
     subscription,
     avatarURL,
+    verificationToken
   });
+  
+  const mail = emailWrapper(email, verificationToken)
+  await sendEmail(mail);
+
 
   return res.status(201).json({
     user: {
       email: registerUser.email,
       subscription: registerUser.subscription,
+      verificationToken: registerUser.verificationToken
     },
   });
 };
@@ -35,8 +45,8 @@ const signup = async (req, res, next) => {
 const login = async (req, res, next) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
-  if (!user) {
-    throw createError(401, "Email or password is wrong");
+  if (!user || !user.verify || !user.passwordCompare(password)) {
+    throw createError(401, "Email is wrong or not verify, or password is wrong");
   }
 
   const passwordCompare = await bcrypt.compare(password, user.password);
@@ -105,6 +115,49 @@ const avatar = async (req, res, next) => {
   });
 };
 
+const verificationEmail = async (res, req) => {
+  const { verificationToken } = req.params;
+  const user = await User.findOne({ verificationToken });
+
+  if (!user) {
+    throw createError(404, "User not found");
+  }
+
+  await User.findByIdAndUpdate(user._id, {
+    verificationToken: null,
+    verify: true,
+  });
+  res.json({
+    status: "success",
+    code: 200,
+    message: "Email verified successffully",
+  });
+};
+
+const repeatVerificationEmail = async (res, req) => {
+  const { email } = req.body;
+  if (!email) {
+    throw createError(400, 'Missing required field email')
+  };
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    throw createError(404, `User with email ${email} does not exist`);
+  }
+  if (user.verify && !user.verificationToken) {
+    throw createError(400, "Verification has already been passed");
+  }
+  const mail = emailWrapper(email, user.verificationToken)
+  await sendEmail(mail);
+
+  res.json({
+    status: "success",
+    code: 200,
+    message: "Verification email sent",
+  });
+};
+
 module.exports = {
   signup,
   login,
@@ -112,4 +165,6 @@ module.exports = {
   getCurrent,
   avatar,
   updateSubscription,
+  verificationEmail,
+  repeatVerificationEmail,
 };

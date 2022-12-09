@@ -14,4 +14,8 @@ router.get("/current", authenticate, asyncWrapper(authController.getCurrent));
 router.patch("/users", authenticate, validation(updateSubscriptionSchema), asyncWrapper(authController.updateSubscription));
 router.patch("/avatars", authenticate, upload.single("avatar"), asyncWrapper(authController.avatar));
 
+router.get("/verify/:verificationToken", asyncWrapper(authController.verificationEmail));
+router.post("/verify", asyncWrapper(authController.repeatVerificationEmail));
+
+
 module.exports = router;
